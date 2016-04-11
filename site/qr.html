@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <title>HIGGS-QRCODE</title>
+        <link rel="stylesheet" href="bootstrap-theme.min.css">
+        <link rel="stylesheet" href="bootstrap.min.css">
+        <script src="jquery-2.1.4.min.js"></script>
+        <script src="forge.min.js"></script>
+    </head>
+    <body>
+        <div class="container" style="margin-top: 40px;">
+            <div class="col-md-offset-4 col-md-4">
+                <div class="form-group">
+                    <label for="password">网站</label>
+                    <select id="tmpl" class="form-control">
+                        <option value="taobao_seller_qrcode">扫码淘宝商家</option>
+                        <option value="tmall_seller_qrcode">扫码天猫商家</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                  <button type="submit" onclick="crawl();" class="btn btn-default">获取二维码</button> 
+                </div>
+
+                <div class="form-group">
+                  <span id="result"></span> 
+                </div>
+                
+                <div class="form-group">
+                  <span id="status_result"></span> 
+                </div>
+            </div>
+        </div>
+    </body>
+  <script src="app-qr.js"></script>
+</html>
+ 
