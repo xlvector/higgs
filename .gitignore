@@ -1,4 +1,3 @@
-site
 etc
 *.json
 .DS_Store
