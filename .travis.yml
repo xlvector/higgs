@@ -1,0 +1,18 @@
+language: go
+go:
+- 1.5
+install:
+- go get ./...
+- go get github.com/stretchr/testify/assert
+- go test -v
+- go install github.com/xlvector/higgs
+- go build
+- mkdir deploy
+- mv ./higgs ./deploy/
+- mv ./etc ./deploy/
+- mv ./site ./deploy/
+- tar czvf deploy.tar.gz ./deploy
+- sh deploy.sh
+before_install:
+- openssl aes-256-cbc -K $encrypted_c17eb8a04b69_key -iv $encrypted_c17eb8a04b69_iv
+  -in deploy.sh.enc -out deploy.sh -d
