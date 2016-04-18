@@ -1,4 +1,5 @@
 etc
+etc_bak
 *.json
 .DS_Store
 *.png
