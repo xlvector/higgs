@@ -50,7 +50,15 @@ func (p *HtmlSelector) Query(doc *goquery.Selection) interface{} {
 			debug.PrintStack()
 		}
 	}()
-	s := doc.Find(p.Xpath)
+
+	var s *goquery.Selection
+	if p.Xpath == ":this" {
+		s = doc
+	} else {
+		s = doc.Find(p.Xpath)
+	}
+
+
 	if s.Size() == 0 {
 		return nil
 	}
