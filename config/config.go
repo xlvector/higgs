@@ -52,6 +52,20 @@ type Config struct {
 	SlackApi             string
 }
 
+func (p Config) HasRedis() bool {
+	if len(p.Redis.Host) > 0 {
+		return true
+	}
+	return false
+}
+
+func (p Config) HasFlume() bool {
+	if len(p.Flume.Host) > 0 {
+		return true
+	}
+	return false
+}
+
 var Instance Config
 
 func Init(conf string) {

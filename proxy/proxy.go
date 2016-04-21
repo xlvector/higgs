@@ -103,10 +103,12 @@ func NewProxyManager(conf string) *ProxyManager {
 		tmplProxies: make(map[string]map[string]*Proxy),
 		lock:        &sync.RWMutex{},
 	}
-	ret.client = redis.NewClient(&redis.Options{
-		Addr:        config.Instance.Redis.Host,
-		DialTimeout: time.Duration(config.Instance.Redis.Timeout) * time.Second,
-	})
+	if config.Instance.HasRedis() {
+		ret.client = redis.NewClient(&redis.Options{
+			Addr:        config.Instance.Redis.Host,
+			DialTimeout: time.Duration(config.Instance.Redis.Timeout) * time.Second,
+		})
+	}
 	if len(conf) > 0 {
 		b, err := ioutil.ReadFile(conf)
 		if err != nil {
@@ -140,6 +142,9 @@ func (p *ProxyManager) genTmplProxiesFromConfig(pc *ProxyConfig) map[string]map[
 }
 
 func (p *ProxyManager) refreshProxiesFromRedis() {
+	if p.client == nil {
+		return
+	}
 	_, err := p.client.Ping().Result()
 	if err != nil {
 		dlog.Warn("redis can not be connected: %v", err)

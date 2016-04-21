@@ -111,7 +111,10 @@ func (s *TaskCmdFactory) createCommandWithPrivateKey(params url.Values, task *Ta
 		task:        task,
 		dama2Client: dama2.NewDama2Client(config.Instance.Captcha.Key),
 		finished:    false,
-		flumeClient: flume.NewFlume(config.Instance.Flume.Host, config.Instance.Flume.Port),
+	}
+
+	if config.Instance.HasFlume() {
+		ret.flumeClient = flume.NewFlume(config.Instance.Flume.Host, config.Instance.Flume.Port)
 	}
 
 	ret.privateKey = pk
@@ -400,7 +403,7 @@ func (p *TaskCmd) run() {
 	err = util.Tarit(p.downloader.OutputFolder, strings.TrimRight(p.downloader.OutputFolder, "/")+".tar")
 	if err != nil {
 		dlog.Warn("tar output from %s failed: %v", p.downloader.OutputFolder, err)
-	} else {
+	} else if p.flumeClient != nil {
 		fb, _ := ioutil.ReadFile(strings.TrimRight(p.downloader.OutputFolder, "/") + ".tar")
 		p.flumeClient.Send(p.tmpl, fb)
 		udLink := util.UploadFile(strings.TrimRight(p.downloader.OutputFolder, "/")+".tar", USERDATA_BUCKET)
