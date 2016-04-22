@@ -282,12 +282,6 @@ func (p *TaskCmd) run() {
 		dlog.Info("--------------------- step %d ----------------------", c)
 		time.Sleep(time.Duration(rand.Int63n(300)) * time.Millisecond)
 
-		if !step.passCondition(p.downloader.Context) {
-			dlog.Warn("skip step %d", c)
-			c++
-			continue
-		}
-
 		if len(step.NeedParam) > 0 {
 			tks := strings.Split(step.NeedParam, ",")
 			for _, tk := range tks {
@@ -302,6 +296,12 @@ func (p *TaskCmd) run() {
 					p.downloader.Context.Set(tk, val)
 				}
 			}
+		}
+
+		if !step.passCondition(p.downloader.Context) {
+			dlog.Warn("skip step %d", c)
+			c++
+			continue
 		}
 
 		err := step.Do(p.downloader, p.dama2Client, p.casperJS)
