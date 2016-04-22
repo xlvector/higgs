@@ -16,6 +16,7 @@ type HtmlSelector struct {
 	Replace string
 	Default string
 	Prefix  string
+	Suffix  string
 }
 
 func NewHtmlSelector(buf string) *HtmlSelector {
@@ -37,8 +38,10 @@ func NewHtmlSelector(buf string) *HtmlSelector {
 			ret.Default = kv[1]
 		} else if kv[0] == "prefix" {
 			ret.Prefix = kv[1]
+		} else if kv[0] == "suffix" {
+			ret.Suffix = kv[1]
 		}
-	}
+ 	}
 	return &ret
 }
 
@@ -93,6 +96,10 @@ func (p *HtmlSelector) Query(doc *goquery.Selection) interface{} {
 
 	if len(p.Prefix) > 0 {
 		ret = p.Prefix + ret
+	}
+
+	if len(p.Suffix) > 0 {
+		ret += p.Suffix
 	}
 	return ret
 }
