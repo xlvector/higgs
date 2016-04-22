@@ -2,16 +2,17 @@ package context
 
 import (
 	"bytes"
-	"github.com/xlvector/dlog"
-	"github.com/xlvector/higgs/casperjs"
-	"github.com/xlvector/higgs/extractor"
-	"github.com/xlvector/higgs/jsonpath"
-	"github.com/xlvector/higgs/util"
 	"math/rand"
 	"strconv"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/xlvector/dlog"
+	"github.com/xlvector/higgs/casperjs"
+	"github.com/xlvector/higgs/extractor"
+	"github.com/xlvector/higgs/jsonpath"
+	"github.com/xlvector/higgs/util"
 )
 
 func DaysAgo(n int, f string) string {
@@ -56,15 +57,6 @@ func NowMillTimestamp() string {
 	return strconv.FormatInt(time.Now().UnixNano()/1000000, 10)
 }
 
-func TaobaoEncodePwd(buf string) string {
-	ret, err := util.TaobaoEncodePassword(buf)
-	if err != nil {
-		dlog.Warn("fail to encode taobao pwd: %v", err)
-		return ""
-	}
-	return ret
-}
-
 func AESEncodePassword(pwd, key, iv string) string {
 	ret, err := util.AESEncodePassword(pwd, key, iv)
 	if err != nil {
@@ -97,7 +89,6 @@ func (p *Context) newEmptyTemplate() *template.Template {
 		"nowTimestamp":       NowTimestamp,
 		"nowMillTimestamp":   NowMillTimestamp,
 		"randIntn":           rand.Intn,
-		"taobaoEncodePwd":    TaobaoEncodePwd,
 		"AESEncodePassword":  AESEncodePassword,
 		"contains":           strings.Contains,
 		"trimPrefix":         strings.TrimPrefix,
