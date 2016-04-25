@@ -12,9 +12,10 @@ const (
 )
 
 type Task struct {
-	Steps           []*Step `json:"steps"`
-	DisbleOutPubKey bool    `json:"disable_out_pub_key"`
-	CasperjsScript  string  `json:"casperjs_script"`
+	Steps               []*Step `json:"steps"`
+	DisableOutPubKey    bool    `json:"disable_out_pub_key"`
+	DisableOutputFolder bool    `json:"disable_output_folder"`
+	CasperjsScript      string  `json:"casperjs_script"`
 }
 
 func NewTask(f string) *Task {

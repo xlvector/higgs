@@ -75,10 +75,12 @@ func NewDownloader(cjs *casperjs.CasperJS, p *hproxy.Proxy, outFolder string, co
 		LastPage:         nil,
 		ExtractorResults: make(map[string]interface{}),
 	}
-	err := os.MkdirAll(outFolder, 0766)
-	if err != nil {
-		dlog.Error("fail to mkdir %s: %v", outFolder, err)
-		return nil
+	if len(outFolder) > 0 {
+		err := os.MkdirAll(outFolder, 0766)
+		if err != nil {
+			dlog.Error("fail to mkdir %s: %v", outFolder, err)
+			return nil
+		}
 	}
 	ret.Client, ret.Jar = NewHttpClientWithPersistentCookieJar()
 	if p != nil {

@@ -128,7 +128,11 @@ func (s *TaskCmdFactory) createCommandWithPrivateKey(params url.Values, task *Ta
 		go ret.casperJS.Run()
 	}
 
-	ret.downloader = NewDownloader(ret.casperJS, p, ret.path, &DownloaderConfig{
+	outFolder := ret.path
+	if task.DisableOutputFolder {
+		outFolder = ""
+	}
+	ret.downloader = NewDownloader(ret.casperJS, p, outFolder, &DownloaderConfig{
 		RedisHost:    config.Instance.Redis.Host,
 		RedisTimeout: time.Duration(config.Instance.Redis.Timeout),
 	})
@@ -232,7 +236,7 @@ func (p *TaskCmd) Close() bool {
 }
 
 func (p *TaskCmd) OutputPublicKey() {
-	if p.task.DisbleOutPubKey == false {
+	if p.task.DisableOutPubKey == false {
 		message := &cmd.Output{
 			Id:     p.GetArgsValue("id"),
 			Status: cmd.OUTPUT_PUBLICKEY,
@@ -309,10 +313,12 @@ func (p *TaskCmd) run() {
 			dlog.Warn("%s downloader dostep fail: %v", p.GetId(), err)
 		}
 
-		dlog.Println("begin save cookie")
-		err = p.downloader.SaveCookie(p.downloader.OutputFolder + "/task_cookies.json")
-		if nil != err {
-			dlog.Warn("save cookie fail: %v", err)
+		if !p.task.DisableOutputFolder {
+			dlog.Println("begin save cookie")
+			err = p.downloader.SaveCookie(p.downloader.OutputFolder + "/task_cookies.json")
+			if nil != err {
+				dlog.Warn("save cookie fail: %v", err)
+			}
 		}
 
 		if step.Message != nil && len(step.Message) > 0 {
@@ -394,23 +400,25 @@ func (p *TaskCmd) run() {
 		c++
 	}
 
-	path := p.downloader.OutputFolder + "/ExtractorInfo.json"
-	saveFile, err := os.Create(path)
-	if err == nil {
-		saveFile.WriteString(p.downloader.ExtractorResultString())
-		saveFile.Close()
-	}
-	err = util.Tarit(p.downloader.OutputFolder, strings.TrimRight(p.downloader.OutputFolder, "/")+".tar")
-	if err != nil {
-		dlog.Warn("tar output from %s failed: %v", p.downloader.OutputFolder, err)
-	} else if p.flumeClient != nil {
-		fb, _ := ioutil.ReadFile(strings.TrimRight(p.downloader.OutputFolder, "/") + ".tar")
-		p.flumeClient.Send(p.tmpl, fb)
-		udLink := util.UploadFile(strings.TrimRight(p.downloader.OutputFolder, "/")+".tar", USERDATA_BUCKET)
-		dlog.Info("user data link: %s", udLink)
-		p.downloader.AddExtractorResult(map[string]interface{}{
-			"data_link": udLink,
-		})
+	if !p.task.DisableOutputFolder {
+		path := p.downloader.OutputFolder + "/ExtractorInfo.json"
+		saveFile, err := os.Create(path)
+		if err == nil {
+			saveFile.WriteString(p.downloader.ExtractorResultString())
+			saveFile.Close()
+		}
+		err = util.Tarit(p.downloader.OutputFolder, strings.TrimRight(p.downloader.OutputFolder, "/")+".tar")
+		if err != nil {
+			dlog.Warn("tar output from %s failed: %v", p.downloader.OutputFolder, err)
+		} else if p.flumeClient != nil {
+			fb, _ := ioutil.ReadFile(strings.TrimRight(p.downloader.OutputFolder, "/") + ".tar")
+			p.flumeClient.Send(p.tmpl, fb)
+			udLink := util.UploadFile(strings.TrimRight(p.downloader.OutputFolder, "/")+".tar", USERDATA_BUCKET)
+			dlog.Info("user data link: %s", udLink)
+			p.downloader.AddExtractorResult(map[string]interface{}{
+				"data_link": udLink,
+			})
+		}
 	}
 
 	message := &cmd.Output{
