@@ -1,11 +1,12 @@
 package extractor
 
 import (
-	"github.com/PuerkitoBio/goquery"
-	"github.com/xlvector/dlog"
 	"regexp"
 	"runtime/debug"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/xlvector/dlog"
 )
 
 // xpath&attr=&regex&replace=&default=
@@ -41,44 +42,26 @@ func NewHtmlSelector(buf string) *HtmlSelector {
 		} else if kv[0] == "suffix" {
 			ret.Suffix = kv[1]
 		}
- 	}
+	}
 	return &ret
 }
 
-func (p *HtmlSelector) Query(doc *goquery.Selection) interface{} {
-	defer func() {
-		if err := recover(); err != nil {
-			dlog.Warn("run error:%v", err)
-			dlog.Warn("selector: %s", p.Xpath)
-			debug.PrintStack()
-		}
-	}()
-
-	var s *goquery.Selection
-	if p.Xpath == ":this" {
-		s = doc
-	} else {
-		s = doc.Find(p.Xpath)
-	}
-
-
-	if s.Size() == 0 {
-		return nil
-	}
+func (p *HtmlSelector) PostProcess(s *goquery.Selection) string {
 	var ret string
 	var err error
 	var ok bool
+
 	if len(p.Attr) == 0 || p.Attr == "text" {
 		ret = s.Text()
 	} else if p.Attr == "html" {
 		ret, err = s.Html()
 		if err != nil {
-			return nil
+			return ""
 		}
 	} else {
 		ret, ok = s.Attr(p.Attr)
 		if !ok {
-			return nil
+			return ""
 		}
 	}
 	ret = strings.TrimSpace(ret)
@@ -102,6 +85,36 @@ func (p *HtmlSelector) Query(doc *goquery.Selection) interface{} {
 		ret += p.Suffix
 	}
 	return ret
+}
+
+func (p *HtmlSelector) Query(doc *goquery.Selection) interface{} {
+	defer func() {
+		if err := recover(); err != nil {
+			dlog.Warn("run error:%v", err)
+			dlog.Warn("selector: %s", p.Xpath)
+			debug.PrintStack()
+		}
+	}()
+
+	var s *goquery.Selection
+	if p.Xpath == ":this" {
+		s = doc
+	} else {
+		s = doc.Find(p.Xpath)
+	}
+
+	if s.Size() == 1 {
+		return p.PostProcess(s)
+	}
+
+	if s.Size() > 1 {
+		ret := make([]string, 0, s.Size())
+		s.Each(func(i int, sx *goquery.Selection) {
+			ret = append(ret, p.PostProcess(sx))
+		})
+		return ret
+	}
+	return nil
 }
 
 func regexExtract(buf, regex string) string {
