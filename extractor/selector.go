@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"runtime/debug"
 	"strings"
-
+	"net/url"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/xlvector/dlog"
 )
@@ -18,6 +18,7 @@ type HtmlSelector struct {
 	Default string
 	Prefix  string
 	Suffix  string
+	Array   string
 }
 
 func NewHtmlSelector(buf string) *HtmlSelector {
@@ -41,6 +42,8 @@ func NewHtmlSelector(buf string) *HtmlSelector {
 			ret.Prefix = kv[1]
 		} else if kv[0] == "suffix" {
 			ret.Suffix = kv[1]
+		} else if kv[0] == "array" {
+			ret.Array = kv[1]
 		}
 	}
 	return &ret
@@ -78,11 +81,13 @@ func (p *HtmlSelector) PostProcess(s *goquery.Selection) string {
 	}
 
 	if len(p.Prefix) > 0 {
-		ret = p.Prefix + ret
+		prefix,_ := url.QueryUnescape(p.Prefix)
+		ret = prefix + ret
 	}
 
 	if len(p.Suffix) > 0 {
-		ret += p.Suffix
+		suffix,_ := url.QueryUnescape(p.Suffix)
+		ret += suffix
 	}
 	return ret
 }
@@ -104,15 +109,27 @@ func (p *HtmlSelector) Query(doc *goquery.Selection) interface{} {
 	}
 
 	if s.Size() == 1 {
-		return p.PostProcess(s)
+		if p.Array == "true" {
+			ret := make([]string, 0, 1)
+			s.Each(func(i int, sx *goquery.Selection) {
+				ret = append(ret, p.PostProcess(sx))
+			})
+			return ret
+		} else {
+			return p.PostProcess(s)
+		}
 	}
 
 	if s.Size() > 1 {
-		ret := make([]string, 0, s.Size())
-		s.Each(func(i int, sx *goquery.Selection) {
-			ret = append(ret, p.PostProcess(sx))
-		})
-		return ret
+		if p.Array == "false" {
+			return p.PostProcess(s)
+		} else {
+			ret := make([]string, 0, s.Size())
+			s.Each(func(i int, sx *goquery.Selection) {
+				ret = append(ret, p.PostProcess(sx))
+			})
+			return ret
+		}
 	}
 	return nil
 }
