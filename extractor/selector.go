@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"runtime/debug"
 	"strings"
-
+	"net/url"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/xlvector/dlog"
 )
@@ -81,11 +81,13 @@ func (p *HtmlSelector) PostProcess(s *goquery.Selection) string {
 	}
 
 	if len(p.Prefix) > 0 {
-		ret = p.Prefix + ret
+		prefix,_ := url.QueryUnescape(p.Prefix)
+		ret = prefix + ret
 	}
 
 	if len(p.Suffix) > 0 {
-		ret += p.Suffix
+		suffix,_ := url.QueryUnescape(p.Suffix)
+		ret += suffix
 	}
 	return ret
 }
