@@ -15,6 +15,8 @@ import (
 	"io/ioutil"
 	"strconv"
 	"time"
+	"net/url"
+	"strings"
 )
 
 type Require struct {
@@ -123,6 +125,9 @@ func (s *Step) getRawPostData() []byte {
 
 func (s *Step) download(d *Downloader) ([]byte, error) {
 	page := s.getPageUrls(d.Context)
+	if strings.Contains(page,"%"){
+		page,_ = url.QueryUnescape(page)
+	}
 	dlog.Info("download %s", page)
 	d.UpdateCookieToContext(page)
 	if len(s.Method) == 0 || s.Method == "GET" {

@@ -270,7 +270,6 @@ func decodeCharset(body, contentTypeHeader string) (string, string) {
 }
 
 func (s *Downloader) Get(link string, header map[string]string) ([]byte, error) {
-	link,_ = url.QueryUnescape(link)
 	dlog.Println(link)
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
