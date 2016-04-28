@@ -229,7 +229,6 @@ func (s *Downloader) constructPage(resp *http.Response) error {
 		}
 		content = string(bodyByte)
 	}
-
 	body := []byte(content)
 	s.LastPageUrl = resp.Request.URL.String()
 	s.LastPage = body
@@ -253,7 +252,7 @@ func decodeCharset(body, contentTypeHeader string) (string, string) {
 	}
 	if len(tks) == 2 {
 		kv := strings.Split(tks[1], "=")
-		if len(kv) == 2 && kv[0] == "charset" {
+		if len(kv) == 2 && strings.TrimSpace(kv[0]) == "charset" {
 			return strings.ToLower(tks[0]), strings.ToLower(kv[1])
 		}
 	}
