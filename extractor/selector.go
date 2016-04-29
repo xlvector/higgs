@@ -19,6 +19,7 @@ type HtmlSelector struct {
 	Prefix  string
 	Suffix  string
 	Array   string
+	BaseUrl string
 }
 
 func NewHtmlSelector(buf string) *HtmlSelector {
@@ -44,6 +45,8 @@ func NewHtmlSelector(buf string) *HtmlSelector {
 			ret.Suffix = kv[1]
 		} else if kv[0] == "array" {
 			ret.Array = kv[1]
+		} else if kv[0] == "base_url"{
+			ret.BaseUrl = kv[1]
 		}
 	}
 	return &ret
@@ -88,6 +91,13 @@ func (p *HtmlSelector) PostProcess(s *goquery.Selection) string {
 	if len(p.Suffix) > 0 {
 		suffix,_ := url.QueryUnescape(p.Suffix)
 		ret += suffix
+	}
+
+	if len(p.BaseUrl) > 0 {
+		if !strings.HasPrefix(ret, "http"){
+			base_url,_ := url.QueryUnescape(p.BaseUrl)
+			ret = base_url + ret
+		}
 	}
 	return ret
 }
