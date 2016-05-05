@@ -130,10 +130,7 @@ func (p *ProxyManager) genTmplProxiesFromConfig(pc *ProxyConfig) map[string]map[
 		checked_proxies[pn] = make(map[string]*Proxy)
 		dlog.Info("Check %s proxies",pn)
 		for _,p := range ps {
-			py := NewProxy(p)
-			if py.Available() {
-				checked_proxies[pn][p] = NewProxy(p)
-			}
+			checked_proxies[pn][p] = NewProxy(p)
 		}
 	}
 
