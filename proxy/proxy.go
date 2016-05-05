@@ -125,21 +125,27 @@ func NewProxyManager(conf string) *ProxyManager {
 }
 
 func (p *ProxyManager) genTmplProxiesFromConfig(pc *ProxyConfig) map[string]map[string]*Proxy {
-	ret := make(map[string]map[string]*Proxy)
-	for tmpl, pn := range pc.Tmpls {
-		ret[tmpl] = make(map[string]*Proxy)
-		if ps, ok := pc.Proxies[pn]; ok {
-			dlog.Info("add %d proxys to tmpl %s", len(ps), tmpl)
-			for _, p := range ps {
-				py := NewProxy(p)
-				if py.Available() {
-					ret[tmpl][p] = NewProxy(p)
-				}
+	checked_proxies := make(map[string]map[string]*Proxy)
+	for pn,ps := range pc.Proxies {
+		checked_proxies[pn] = make(map[string]*Proxy)
+		dlog.Info("Check %s proxies",pn)
+		for _,p := range ps {
+			py := NewProxy(p)
+			if py.Available() {
+				checked_proxies[pn][p] = NewProxy(p)
 			}
 		}
 	}
+
+	ret := make(map[string]map[string]*Proxy)
+	for tmpl,pn := range pc.Tmpls {
+		dlog.Info("Add %s proxies to tmpl %s",pn,tmpl)
+		ret[tmpl] = make(map[string]*Proxy)
+		ret[tmpl] = checked_proxies[pn]
+	}
 	return ret
 }
+
 
 func (p *ProxyManager) refreshProxiesFromRedis() {
 	if p.client == nil {
