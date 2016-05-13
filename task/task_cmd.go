@@ -246,6 +246,7 @@ func (p *TaskCmd) OutputPublicKey() {
 	}
 }
 
+
 func (p *TaskCmd) Goto() (map[string]int, map[string]int) {
 	gotoMap := make(map[string]int)
 	retry := make(map[string]int)
@@ -315,10 +316,12 @@ func (p *TaskCmd) run() {
 
 		if !p.task.DisableOutputFolder {
 			dlog.Println("begin save cookie")
+			/*
 			err = p.downloader.SaveCookie(p.downloader.OutputFolder + "/task_cookies.json")
 			if nil != err {
 				dlog.Warn("save cookie fail: %v", err)
 			}
+			*/
 		}
 
 		if step.Message != nil && len(step.Message) > 0 {
