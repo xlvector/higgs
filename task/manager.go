@@ -69,7 +69,7 @@ func (p *TaskManager) GetJsonByTmpl(tmpl string) string {
 }
 
 func (p *TaskManager) FixInclude() {
-	for k, task := range p.tasks {
+	for _, task := range p.tasks {
 		steps := []*Step{}
 		hasRequire := false
 		for _, step := range task.Steps {
