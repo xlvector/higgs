@@ -153,9 +153,6 @@ func (p *TaskCmd) Finished() bool {
 }
 
 func (p *TaskCmd) SetInputArgs(input map[string]string) {
-	for k, v := range input {
-		dlog.Info("set args:%s->%s", k, v)
-	}
 
 	if p.Finished() {
 		dlog.Warn("finished")

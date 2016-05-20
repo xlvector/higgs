@@ -77,7 +77,6 @@ type CookieEntry struct {
 func FormatCookie(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	cookieJson := req.FormValue("cookie")
-	dlog.Info("format %s", cookieJson)
 	tmpl := req.FormValue("tmpl")
 	cookies := make([]CookieEntry, 0)
 	err := json.Unmarshal([]byte(cookieJson), &cookies)
@@ -112,7 +111,6 @@ func FormatCookie(w http.ResponseWriter, req *http.Request) {
 		addToSite(ret, cookieTmplate.Site, v)
 	}
 	result, _ := json.Marshal(ret)
-	dlog.Info("formated %s", result)
 	fmt.Fprintf(w, "%s", result)
 }
 

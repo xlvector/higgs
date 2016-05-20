@@ -51,7 +51,6 @@ func Extract(body []byte, config0 interface{}, docType string, c Context) (inter
 	config := deepCopy(config0)
 	if len(docType) == 0 {
 		docType = guessDocType(body)
-		dlog.Info("guess doc type: %s", docType)
 	}
 	if docType == "html" {
 		doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
