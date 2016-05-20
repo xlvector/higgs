@@ -333,7 +333,6 @@ func (p *TaskCmd) run() {
 			}
 
 			p.message <- msg
-			dlog.Info("output msg: %v", msg)
 
 			if msg.Status == cmd.FAIL || msg.Status == cmd.FINISH_FETCH_DATA {
 				p.finished = true
@@ -353,7 +352,6 @@ func (p *TaskCmd) run() {
 				}
 
 				p.message <- msg
-				dlog.Info("output msg: %v", msg)
 				if msg.Status == cmd.FAIL || msg.Status == cmd.FINISH_FETCH_DATA {
 					p.finished = true
 					return
@@ -414,7 +412,6 @@ func (p *TaskCmd) run() {
 			fb, _ := ioutil.ReadFile(strings.TrimRight(p.downloader.OutputFolder, "/") + ".tar")
 			p.flumeClient.Send(p.tmpl, fb)
 			udLink := util.UploadFile(strings.TrimRight(p.downloader.OutputFolder, "/")+".tar", USERDATA_BUCKET)
-			dlog.Info("user data link: %s", udLink)
 			p.downloader.AddExtractorResult(map[string]interface{}{
 				"data_link": udLink,
 			})

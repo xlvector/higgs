@@ -69,12 +69,10 @@ func (p *CasperJS) Start() error {
 
 func (p *CasperJS) ReadChan() []byte {
 	ret := <-p.outputChan
-	dlog.Println("read chan: ", string(ret))
 	return ret
 }
 
 func (p *CasperJS) WriteChan(b []byte) {
-	dlog.Println("write chan: ", string(b))
 	p.inputChan <- b
 }
 
@@ -151,7 +149,6 @@ func (p *CasperJS) Run() error {
 			break
 		}
 		line = strings.TrimSpace(line)
-		dlog.Println("read line: ", line)
 
 		if line == "finish" {
 			break
@@ -195,7 +192,6 @@ func (p *CasperJS) Run() error {
 			dlog.Warn("write line failed: %v", err)
 			break
 		}
-		dlog.Println("write line: ", string(b))
 	}
 	p.Cmd.Process.Wait()
 	p.Cmd.Process.Kill()
