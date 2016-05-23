@@ -14,6 +14,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"
+	"runtime/debug"
 )
 
 const (
@@ -125,6 +126,7 @@ func addToSite(ret map[string]map[string]CookieEntry, site string, entry CookieE
 
 func main() {
 	runtime.GOMAXPROCS(4)
+	debug.SetGCPercent(70)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	port := flag.String("port", "8001", "port number")
 	env := flag.String("env", "prod", "env")
