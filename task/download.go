@@ -64,7 +64,7 @@ func NewHttpClientWithPersistentCookieJar() (*http.Client, *cookiejar.Jar) {
 			dlog.Warn("CheckRedirect URL:%s", req.URL.String())
 			return nil
 		},
-		Timeout: time.Minute,
+		Timeout: time.Second * 30,
 	}, jar
 }
 
@@ -137,7 +137,7 @@ func (p *Downloader) AddExtractorResult(data interface{}) {
 func (self *Downloader) SetProxy(p *hproxy.Proxy) {
 	transport := &http.Transport{
 		DisableKeepAlives:     true,
-		ResponseHeaderTimeout: time.Minute,
+		ResponseHeaderTimeout: time.Second * 30,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 			MaxVersion:         tls.VersionTLS12,
@@ -184,7 +184,7 @@ func (self *Downloader) SetProxy(p *hproxy.Proxy) {
 		transport.Dial = dialSocks5Proxy.Dial
 	} else if p.Type == "http" {
 		transport.Dial = func(netw, addr string) (net.Conn, error) {
-			timeout := time.Minute
+			timeout := time.Second * 30
 			deadline := time.Now().Add(timeout)
 			c, err := net.DialTimeout(netw, addr, timeout)
 			if err != nil {
