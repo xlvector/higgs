@@ -50,7 +50,6 @@ func (self *CasperServer) getArgs(params url.Values) map[string]string {
 }
 
 func (self *CasperServer) Process(params url.Values) *Output {
-	dlog.Info("%s", params.Encode())
 	id := params.Get("id")
 	dlog.Println("id: ", id)
 	if len(id) == 0 {
@@ -68,7 +67,6 @@ func (self *CasperServer) Process(params url.Values) *Output {
 		return &Output{Status: FAIL, Data: "not get command"}
 	}
 
-	dlog.Info("get cmd:%s", id)
 	ret := self.setArgs(c, params)
 
 	if c.Finished() || ret.Status == FAIL || ret.Status == FINISH_FETCH_DATA || ret.Status == FINISH_ALL {

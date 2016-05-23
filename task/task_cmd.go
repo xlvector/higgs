@@ -67,12 +67,15 @@ func (s *TaskCmdFactory) CreateCommand(params url.Values) cmd.Command {
 	if task == nil {
 		return nil
 	}
-	pk, err := util.GenerateRSAKey()
-	if err != nil {
-		dlog.Fatalln("fail to generate rsa key", err)
+	if !task.DisableOutPubKey {
+		pk, err := util.GenerateRSAKey()
+		if err != nil {
+			dlog.Fatalln("fail to generate rsa key", err)
+		}
+		return s.createCommandWithPrivateKey(params, task, pk)
 	}
 	dlog.Println("begin create command")
-	return s.createCommandWithPrivateKey(params, task, pk)
+	return s.createCommandWithPrivateKey(params, task, nil)
 }
 
 func (s *TaskCmdFactory) CreateCommandWithPrivateKey(params url.Values, pk *rsa.PrivateKey) cmd.Command {
@@ -153,9 +156,6 @@ func (p *TaskCmd) Finished() bool {
 }
 
 func (p *TaskCmd) SetInputArgs(input map[string]string) {
-	for k, v := range input {
-		dlog.Info("set args:%s->%s", k, v)
-	}
 
 	if p.Finished() {
 		dlog.Warn("finished")
@@ -177,9 +177,7 @@ func (p *TaskCmd) getUserName() string {
 }
 
 func (p *TaskCmd) readInputArgs(key string) string {
-	dlog.Info("%s blocking........................", p.GetId())
 	args := <-p.input
-	dlog.Info("%s read args:%s from %v and %v", p.GetId(), key, args, p.args)
 	for k, v := range args {
 		if k == "username" {
 			p.userName = v
@@ -275,8 +273,6 @@ func (p *TaskCmd) run() {
 
 	gotoMap, retry := p.Goto()
 
-	dlog.Println(p.GetId(), " num of steps: ", len(p.task.Steps))
-
 	c := 0
 	for {
 		if c >= len(p.task.Steps) {
@@ -284,14 +280,12 @@ func (p *TaskCmd) run() {
 		}
 
 		step := p.task.Steps[c]
-		dlog.Info("--------------------- step %d ----------------------", c)
 		time.Sleep(time.Duration(rand.Int63n(300)) * time.Millisecond)
 
 		if len(step.NeedParam) > 0 {
 			tks := strings.Split(step.NeedParam, ",")
 			for _, tk := range tks {
 				_, ok := p.downloader.Context.Get(tk)
-				dlog.Warn("%s try to get %s, exist = %v", p.GetId(), tk, ok)
 				if !ok {
 					val := p.GetArgsValue(tk)
 					delete(p.args, tk)
@@ -336,7 +330,6 @@ func (p *TaskCmd) run() {
 			}
 
 			p.message <- msg
-			dlog.Info("output msg: %v", msg)
 
 			if msg.Status == cmd.FAIL || msg.Status == cmd.FINISH_FETCH_DATA {
 				p.finished = true
@@ -356,7 +349,6 @@ func (p *TaskCmd) run() {
 				}
 
 				p.message <- msg
-				dlog.Info("output msg: %v", msg)
 				if msg.Status == cmd.FAIL || msg.Status == cmd.FINISH_FETCH_DATA {
 					p.finished = true
 					return
@@ -417,7 +409,6 @@ func (p *TaskCmd) run() {
 			fb, _ := ioutil.ReadFile(strings.TrimRight(p.downloader.OutputFolder, "/") + ".tar")
 			p.flumeClient.Send(p.tmpl, fb)
 			udLink := util.UploadFile(strings.TrimRight(p.downloader.OutputFolder, "/")+".tar", USERDATA_BUCKET)
-			dlog.Info("user data link: %s", udLink)
 			p.downloader.AddExtractorResult(map[string]interface{}{
 				"data_link": udLink,
 			})

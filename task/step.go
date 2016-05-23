@@ -88,7 +88,6 @@ func (s *Step) getParams(c *context.Context) map[string]string {
 
 func (s *Step) addContextOutputs(c *context.Context) {
 	for _, co := range s.ContextOpers {
-		dlog.Info("parse %s", co)
 		c.Parse(co)
 	}
 }

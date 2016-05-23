@@ -14,6 +14,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"
+	"runtime/debug"
 )
 
 const (
@@ -77,7 +78,6 @@ type CookieEntry struct {
 func FormatCookie(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	cookieJson := req.FormValue("cookie")
-	dlog.Info("format %s", cookieJson)
 	tmpl := req.FormValue("tmpl")
 	cookies := make([]CookieEntry, 0)
 	err := json.Unmarshal([]byte(cookieJson), &cookies)
@@ -112,7 +112,6 @@ func FormatCookie(w http.ResponseWriter, req *http.Request) {
 		addToSite(ret, cookieTmplate.Site, v)
 	}
 	result, _ := json.Marshal(ret)
-	dlog.Info("formated %s", result)
 	fmt.Fprintf(w, "%s", result)
 }
 
@@ -127,6 +126,7 @@ func addToSite(ret map[string]map[string]CookieEntry, site string, entry CookieE
 
 func main() {
 	runtime.GOMAXPROCS(4)
+	debug.SetGCPercent(70)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	port := flag.String("port", "8001", "port number")
 	env := flag.String("env", "prod", "env")

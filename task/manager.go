@@ -34,7 +34,6 @@ func NewTaskManager(root string) *TaskManager {
 
 func (p *TaskManager) Get(tmpl string) *Task {
 	if name, ok := config.Instance.Templates[tmpl]; ok {
-		dlog.Info("find name %s for tmpl %s", name, tmpl)
 		if task, ok2 := p.tasks[name]; ok2 {
 			return task.DeepCopy()
 		}
@@ -70,14 +69,13 @@ func (p *TaskManager) GetJsonByTmpl(tmpl string) string {
 }
 
 func (p *TaskManager) FixInclude() {
-	for k, task := range p.tasks {
+	for _, task := range p.tasks {
 		steps := []*Step{}
 		hasRequire := false
 		for _, step := range task.Steps {
 			if step.Require != nil {
 				reqTask, ok := p.tasks[step.Require.File]
 				if ok {
-					dlog.Info("task %s require %s", k, step.Require.File)
 					steps = append(steps, p.GetSteps(reqTask, step.Require.From, step.Require.To)...)
 				}
 				hasRequire = true
@@ -88,7 +86,6 @@ func (p *TaskManager) FixInclude() {
 		if hasRequire {
 			task.Steps = steps
 		}
-		dlog.Info("task %s has %d steps", k, len(task.Steps))
 	}
 }
 

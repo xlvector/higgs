@@ -64,7 +64,7 @@ func NewHttpClientWithPersistentCookieJar() (*http.Client, *cookiejar.Jar) {
 			dlog.Warn("CheckRedirect URL:%s", req.URL.String())
 			return nil
 		},
-		Timeout: time.Minute,
+		Timeout: time.Second * 30,
 	}, jar
 }
 
@@ -137,7 +137,7 @@ func (p *Downloader) AddExtractorResult(data interface{}) {
 func (self *Downloader) SetProxy(p *hproxy.Proxy) {
 	transport := &http.Transport{
 		DisableKeepAlives:     true,
-		ResponseHeaderTimeout: time.Minute,
+		ResponseHeaderTimeout: time.Second * 30,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 			MaxVersion:         tls.VersionTLS12,
@@ -184,7 +184,7 @@ func (self *Downloader) SetProxy(p *hproxy.Proxy) {
 		transport.Dial = dialSocks5Proxy.Dial
 	} else if p.Type == "http" {
 		transport.Dial = func(netw, addr string) (net.Conn, error) {
-			timeout := time.Minute
+			timeout := time.Second * 30
 			deadline := time.Now().Add(timeout)
 			c, err := net.DialTimeout(netw, addr, timeout)
 			if err != nil {
@@ -194,7 +194,6 @@ func (self *Downloader) SetProxy(p *hproxy.Proxy) {
 			return c, nil
 		}
 		proxyUrl, err := url.Parse(p.String())
-		dlog.Warn("proxy url :%s", proxyUrl)
 		if err == nil {
 			transport.Proxy = http.ProxyURL(proxyUrl)
 		}
@@ -206,10 +205,11 @@ func (self *Downloader) SetProxy(p *hproxy.Proxy) {
 
 func (s *Downloader) constructPage(resp *http.Response) error {
 	defer resp.Body.Close()
-	var content string
+	body := make([]byte, 1024)
 	switch resp.Header.Get("Content-Encoding") {
 	case "gzip":
 		reader, _ := gzip.NewReader(resp.Body)
+		defer reader.Close()
 		for {
 			buf := make([]byte, 1024)
 			n, err := reader.Read(buf)
@@ -219,22 +219,26 @@ func (s *Downloader) constructPage(resp *http.Response) error {
 			if n == 0 {
 				break
 			}
-			content += string(buf)
+			body = append(body, buf...)
 		}
 	default:
-		bodyByte, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			dlog.Warn("read resp error %v", err)
-			return err
+		for {
+			buf := make([]byte, 1024)
+			n, err := resp.Body.Read(buf)
+			if err != nil && err != io.EOF {
+				return err
+			}
+			if n == 0 {
+				break
+			}
+			body = append(body, buf...)
 		}
-		content = string(bodyByte)
 	}
-	body := []byte(content)
 	s.LastPageUrl = resp.Request.URL.String()
 	s.LastPage = body
 	var charset string
 	s.LastPageContentType, charset = decodeCharset(string(s.LastPage), resp.Header.Get("Content-Type"))
-	dlog.Println(s.LastPageContentType, charset)
+
 	if !strings.Contains(s.LastPageContentType, "image") && (strings.HasPrefix(charset, "gb") || strings.HasPrefix(charset, "GB")) {
 		enc := mahonia.NewDecoder("gbk")
 		cbody := []byte(enc.ConvertString(string(body)))
