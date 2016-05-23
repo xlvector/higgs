@@ -67,9 +67,11 @@ func (s *TaskCmdFactory) CreateCommand(params url.Values) cmd.Command {
 	if task == nil {
 		return nil
 	}
-	pk, err := util.GenerateRSAKey()
-	if err != nil {
-		dlog.Fatalln("fail to generate rsa key", err)
+	if !task.DisableOutPubKey {
+		pk, err := util.GenerateRSAKey()
+		if err != nil {
+			dlog.Fatalln("fail to generate rsa key", err)
+		}
 	}
 	dlog.Println("begin create command")
 	return s.createCommandWithPrivateKey(params, task, pk)
