@@ -224,12 +224,11 @@ func (s *Downloader) constructPage(resp *http.Response) error {
 			body = append(body, buf...)
 		}
 	default:
-		bodyByte, err := ioutil.ReadAll(resp.Body)
+		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			dlog.Warn("read resp error %v", err)
 			return err
 		}
-		body = bodyByte
 	}
 	s.LastPageUrl = resp.Request.URL.String()
 	s.LastPage = body
