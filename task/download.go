@@ -210,6 +210,7 @@ func (s *Downloader) constructPage(resp *http.Response) error {
 	switch resp.Header.Get("Content-Encoding") {
 	case "gzip":
 		reader, _ := gzip.NewReader(resp.Body)
+		defer reader.Close()
 		for {
 			buf := make([]byte, 1024)
 			n, err := reader.Read(buf)
