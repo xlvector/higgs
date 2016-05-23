@@ -206,10 +206,9 @@ func (self *Downloader) SetProxy(p *hproxy.Proxy) {
 
 func (s *Downloader) constructPage(resp *http.Response) error {
 	defer resp.Body.Close()
-	var body []byte
+	body := make([]byte, 1024)
 	switch resp.Header.Get("Content-Encoding") {
 	case "gzip":
-		body = make([]byte, 1024)
 		reader, _ := gzip.NewReader(resp.Body)
 		defer reader.Close()
 		for {
@@ -224,10 +223,16 @@ func (s *Downloader) constructPage(resp *http.Response) error {
 			body = append(body, buf...)
 		}
 	default:
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			dlog.Warn("read resp error %v", err)
-			return err
+		for {
+			buf := make([]byte, 1024)
+			n, err := resp.Body.Read(buf)
+			if err != nil && err != io.EOF {
+				return err
+			}
+			if n == 0 {
+				break
+			}
+			body = append(body, buf...)
 		}
 	}
 	s.LastPageUrl = resp.Request.URL.String()
