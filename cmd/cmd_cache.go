@@ -22,7 +22,7 @@ func (self *CommandCache) SetCommand(c Command) {
 	defer self.lock.Unlock()
 	self.data[c.GetId()] = c
 	go func() {
-		timer := time.NewTimer(25 * time.Minute)
+		timer := time.NewTimer(time.Minute)
 		<-timer.C
 		c.Close()
 		self.Delete(c.GetId())
