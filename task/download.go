@@ -206,9 +206,10 @@ func (self *Downloader) SetProxy(p *hproxy.Proxy) {
 
 func (s *Downloader) constructPage(resp *http.Response) error {
 	defer resp.Body.Close()
-	var content string
+	var body []byte
 	switch resp.Header.Get("Content-Encoding") {
 	case "gzip":
+		body = make([]byte, 1024)
 		reader, _ := gzip.NewReader(resp.Body)
 		defer reader.Close()
 		for {
@@ -220,7 +221,7 @@ func (s *Downloader) constructPage(resp *http.Response) error {
 			if n == 0 {
 				break
 			}
-			content += string(buf)
+			body = append(body, buf...)
 		}
 	default:
 		bodyByte, err := ioutil.ReadAll(resp.Body)
@@ -228,14 +229,13 @@ func (s *Downloader) constructPage(resp *http.Response) error {
 			dlog.Warn("read resp error %v", err)
 			return err
 		}
-		content = string(bodyByte)
+		body = bodyByte
 	}
-	body := []byte(content)
 	s.LastPageUrl = resp.Request.URL.String()
 	s.LastPage = body
 	var charset string
 	s.LastPageContentType, charset = decodeCharset(string(s.LastPage), resp.Header.Get("Content-Type"))
-	dlog.Println(s.LastPageContentType, charset)
+
 	if !strings.Contains(s.LastPageContentType, "image") && (strings.HasPrefix(charset, "gb") || strings.HasPrefix(charset, "GB")) {
 		enc := mahonia.NewDecoder("gbk")
 		cbody := []byte(enc.ConvertString(string(body)))
