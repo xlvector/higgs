@@ -177,9 +177,7 @@ func (p *TaskCmd) getUserName() string {
 }
 
 func (p *TaskCmd) readInputArgs(key string) string {
-	dlog.Info("%s blocking........................", p.GetId())
 	args := <-p.input
-	dlog.Info("%s read args:%s from %v and %v", p.GetId(), key, args, p.args)
 	for k, v := range args {
 		if k == "username" {
 			p.userName = v
@@ -274,8 +272,6 @@ func (p *TaskCmd) run() {
 
 	gotoMap, retry := p.Goto()
 
-	dlog.Println(p.GetId(), " num of steps: ", len(p.task.Steps))
-
 	c := 0
 	for {
 		if c >= len(p.task.Steps) {
@@ -283,14 +279,12 @@ func (p *TaskCmd) run() {
 		}
 
 		step := p.task.Steps[c]
-		dlog.Info("--------------------- step %d ----------------------", c)
 		time.Sleep(time.Duration(rand.Int63n(300)) * time.Millisecond)
 
 		if len(step.NeedParam) > 0 {
 			tks := strings.Split(step.NeedParam, ",")
 			for _, tk := range tks {
 				_, ok := p.downloader.Context.Get(tk)
-				dlog.Warn("%s try to get %s, exist = %v", p.GetId(), tk, ok)
 				if !ok {
 					val := p.GetArgsValue(tk)
 					delete(p.args, tk)

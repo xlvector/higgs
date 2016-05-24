@@ -194,7 +194,6 @@ func (self *Downloader) SetProxy(p *hproxy.Proxy) {
 			return c, nil
 		}
 		proxyUrl, err := url.Parse(p.String())
-		dlog.Warn("proxy url :%s", proxyUrl)
 		if err == nil {
 			transport.Proxy = http.ProxyURL(proxyUrl)
 		}
