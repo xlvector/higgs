@@ -39,6 +39,7 @@ const (
 	OUTPUT_PUBLICKEY      = "output_publickey"
 	OUTPUT_VERIFYCODE     = "output_verifycode"
 	OUTPUT_QRCODE         = "output_qrcode"
+	WRONG_RESPONSE	      = "wrong_response"
 )
 
 type Output struct {

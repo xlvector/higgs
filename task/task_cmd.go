@@ -315,6 +315,19 @@ func (p *TaskCmd) run() {
 			}
 		}
 
+		if p.downloader.LastPageStatus/100 == 4 || p.downloader.LastPageStatus/100 == 5 {
+			msg := &cmd.Output{
+				Status: cmd.WRONG_RESPONSE,
+				Id:	p.GetArgsValue("id"),
+				Data:	p.downloader.Context.Parse(step.Message["data"]),
+			}
+
+			p.message <- msg
+			dlog.Info("output msg: %v", msg)
+
+			p.finished = true
+			return
+		}
 		if step.Message != nil && len(step.Message) > 0 {
 			msg := &cmd.Output{
 				Status: step.Message["status"],
