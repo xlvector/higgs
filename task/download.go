@@ -39,7 +39,7 @@ type Downloader struct {
 	Jar                 *cookiejar.Jar
 	LastPage            []byte
 	LastPageUrl         string
-	LastPageStatus	    int
+	LastPageStatus      int
 	LastPageContentType string
 	Client              *http.Client
 	Context             *context.Context
@@ -289,11 +289,15 @@ func (s *Downloader) Get(link string, header map[string]string) ([]byte, error) 
 	}
 
 	resp, err := s.Client.Do(req)
-	s.LastPageStatus = resp.StatusCode
+
 	if err != nil {
 		dlog.Warn("do req error: %v", err)
 		return nil, err
 	}
+	if resp == nil {
+		return nil, errors.New("nil resp")
+	}
+	s.LastPageStatus = resp.StatusCode
 	err = s.constructPage(resp)
 	if err != nil {
 		return nil, err
