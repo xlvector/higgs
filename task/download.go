@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"github.com/axgle/mahonia"
 	"github.com/xlvector/dlog"
 	"github.com/xlvector/higgs/casperjs"
