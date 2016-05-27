@@ -304,7 +304,6 @@ func (p *TaskCmd) run() {
 				Status: cmd.TMPL_BLOCK,
 				Id:	p.GetArgsValue("id"),
 				Data:	data,
-				//Data:	p.downloader.Context.Parse(step.Message["data"]),
 			}
 
 			p.message <- msg
