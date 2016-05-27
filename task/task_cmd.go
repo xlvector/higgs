@@ -27,22 +27,24 @@ const (
 )
 
 type TaskCmd struct {
-	id          string
-	tmpl        string
-	userName    string
-	userId      string
-	passWord    string
-	path        string
-	message     chan *cmd.Output
-	input       chan map[string]string
-	args        map[string]string
-	privateKey  *rsa.PrivateKey
-	downloader  *Downloader
-	task        *Task
-	casperJS    *casperjs.CasperJS
-	dama2Client *dama2.Dama2Client
-	flumeClient *flume.Flume
-	finished    bool
+	id           string
+	tmpl         string
+	userName     string
+	userId       string
+	passWord     string
+	path         string
+	message      chan *cmd.Output
+	input        chan map[string]string
+	args         map[string]string
+	privateKey   *rsa.PrivateKey
+	downloader   *Downloader
+	task         *Task
+	casperJS     *casperjs.CasperJS
+	dama2Client  *dama2.Dama2Client
+	flumeClient  *flume.Flume
+	finished     bool
+	proxy 	     *hproxy.Proxy
+	proxyManager *hproxy.ProxyManager
 }
 
 type TaskCmdFactory struct {
@@ -126,6 +128,8 @@ func (s *TaskCmdFactory) createCommandWithPrivateKey(params url.Values, task *Ta
 	if s.proxyManager != nil {
 		p = s.proxyManager.GetTmplProxy(tmpl)
 	}
+	ret.proxy = p
+	ret.proxyManager = s.proxyManager
 	if len(task.CasperjsScript) > 0 {
 		ret.casperJS, _ = casperjs.NewCasperJS(ret.path, "./etc/casperjs/"+task.CasperjsScript, "", "")
 		go ret.casperJS.Run()
@@ -138,7 +142,7 @@ func (s *TaskCmdFactory) createCommandWithPrivateKey(params url.Values, task *Ta
 	ret.downloader = NewDownloader(ret.casperJS, p, outFolder, &DownloaderConfig{
 		RedisHost:    config.Instance.Redis.Host,
 		RedisTimeout: time.Duration(config.Instance.Redis.Timeout),
-	})
+	},   s.proxyManager)
 
 	dlog.Warn("output folder: %s", ret.downloader.OutputFolder)
 	ret.downloader.Context.Set("_id", ret.GetId())
@@ -329,21 +333,38 @@ func (p *TaskCmd) run() {
 			return
 		}
 		if step.Message != nil && len(step.Message) > 0 {
-			msg := &cmd.Output{
-				Status: step.Message["status"],
-				Id:     p.GetArgsValue("id"),
-				Data:   p.downloader.Context.Parse(step.Message["data"]),
-			}
+			data := p.downloader.Context.Parse(step.Message["data"])
+			if p.proxy == nil && p.proxyManager.CheckTmpl(p.tmpl) == true{
+				data = strings.TrimSuffix(data, "}")+",\"block_time\":\""+p.task.TmplBlockTime+"\"}"
+				msg := &cmd.Output{
+					Status: cmd.TMPL_BLOCK,
+					Id:	p.GetArgsValue("id"),
+					Data:	data,
+				}
+				dlog.Println(data)
+				p.message <- msg
 
-			if needParam, ok := step.Message["need_param"]; ok {
-				msg.NeedParam = needParam
-			}
-
-			p.message <- msg
-
-			if msg.Status == cmd.FAIL || msg.Status == cmd.FINISH_FETCH_DATA {
 				p.finished = true
 				return
+
+
+			} else {
+				msg := &cmd.Output{
+					Status: step.Message["status"],
+					Id:     p.GetArgsValue("id"),
+					Data:   data,
+				}
+
+				if needParam, ok := step.Message["need_param"]; ok {
+					msg.NeedParam = needParam
+				}
+
+				p.message <- msg
+
+				if msg.Status == cmd.FAIL || msg.Status == cmd.FINISH_FETCH_DATA {
+					p.finished = true
+					return
+				}
 			}
 		}
 
