@@ -70,9 +70,9 @@ func NewHttpClientWithPersistentCookieJar() (*http.Client, *cookiejar.Jar) {
 	}, jar
 }
 
-func NewDownloader(cjs *casperjs.CasperJS, p *hproxy.Proxy, outFolder string, config *DownloaderConfig) *Downloader {
+func NewDownloader(cjs *casperjs.CasperJS, p *hproxy.Proxy, outFolder string, config *DownloaderConfig, pm *hproxy.ProxyManager) *Downloader {
 	ret := &Downloader{
-		Context:          context.NewContext(cjs),
+		Context:          context.NewContext(cjs, p, pm),
 		OutputFolder:     outFolder,
 		LastPage:         nil,
 		ExtractorResults: make(map[string]interface{}),

@@ -235,6 +235,14 @@ func (p *ProxyManager) AddTmplProxy(tmpl, proxyStr string) {
 	}
 }
 
+func (p *ProxyManager) CheckTmpl(tmpl string) bool {
+	if _, ok := p.tmplProxies[tmpl]; ok{
+		return true
+	} else {
+		return false
+	}
+}
+
 func (p *ProxyManager) BlockProxy(proxy *Proxy) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
