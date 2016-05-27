@@ -299,7 +299,7 @@ func (p *TaskCmd) run() {
 		}
 
 		if p.proxy == nil {
-			data := "{\"tmpl\":\""+p.tmpl+"\"}"
+			data := "{\"tmpl\":\""+p.tmpl+"\",\"block_time\":\""+cmd.TMPL_BLOCK_TIME+"\"}"
 			msg := &cmd.Output{
 				Status: cmd.TMPL_BLOCK,
 				Id:	p.GetArgsValue("id"),

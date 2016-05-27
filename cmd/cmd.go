@@ -41,6 +41,7 @@ const (
 	OUTPUT_QRCODE         = "output_qrcode"
 	WRONG_RESPONSE	      = "wrong_response"
 	TMPL_BLOCK	      = "tmpl_block"
+	TMPL_BLOCK_TIME	      = "900"
 )
 
 type Output struct {

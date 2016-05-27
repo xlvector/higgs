@@ -290,7 +290,7 @@ func (s *Downloader) Get(link string, header map[string]string) ([]byte, error) 
 	}
 
 	resp, err := s.Client.Do(req)
-	
+
 	if err != nil {
 		dlog.Warn("do req error: %v", err)
 		return nil, err
