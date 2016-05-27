@@ -27,22 +27,23 @@ const (
 )
 
 type TaskCmd struct {
-	id          string
-	tmpl        string
-	userName    string
-	userId      string
-	passWord    string
-	path        string
-	message     chan *cmd.Output
-	input       chan map[string]string
-	args        map[string]string
-	privateKey  *rsa.PrivateKey
-	downloader  *Downloader
-	task        *Task
-	casperJS    *casperjs.CasperJS
-	dama2Client *dama2.Dama2Client
-	flumeClient *flume.Flume
-	finished    bool
+	id           string
+	tmpl         string
+	userName     string
+	userId       string
+	passWord     string
+	path         string
+	message      chan *cmd.Output
+	input        chan map[string]string
+	args         map[string]string
+	privateKey   *rsa.PrivateKey
+	downloader   *Downloader
+	task         *Task
+	casperJS     *casperjs.CasperJS
+	dama2Client  *dama2.Dama2Client
+	flumeClient  *flume.Flume
+	finished     bool
+	proxy 	     *hproxy.Proxy
 }
 
 type TaskCmdFactory struct {
@@ -126,6 +127,7 @@ func (s *TaskCmdFactory) createCommandWithPrivateKey(params url.Values, task *Ta
 	if s.proxyManager != nil {
 		p = s.proxyManager.GetTmplProxy(tmpl)
 	}
+	ret.proxy = p
 	if len(task.CasperjsScript) > 0 {
 		ret.casperJS, _ = casperjs.NewCasperJS(ret.path, "./etc/casperjs/"+task.CasperjsScript, "", "")
 		go ret.casperJS.Run()
@@ -138,7 +140,7 @@ func (s *TaskCmdFactory) createCommandWithPrivateKey(params url.Values, task *Ta
 	ret.downloader = NewDownloader(ret.casperJS, p, outFolder, &DownloaderConfig{
 		RedisHost:    config.Instance.Redis.Host,
 		RedisTimeout: time.Duration(config.Instance.Redis.Timeout),
-	})
+	},   s.proxyManager)
 
 	dlog.Warn("output folder: %s", ret.downloader.OutputFolder)
 	ret.downloader.Context.Set("_id", ret.GetId())
@@ -294,6 +296,22 @@ func (p *TaskCmd) run() {
 					p.downloader.Context.Set(tk, val)
 				}
 			}
+		}
+
+		if p.proxy == nil {
+			data := "{\"tmpl\":\""+p.tmpl+"\"}"
+			msg := &cmd.Output{
+				Status: cmd.TMPL_BLOCK,
+				Id:	p.GetArgsValue("id"),
+				Data:	data,
+				//Data:	p.downloader.Context.Parse(step.Message["data"]),
+			}
+
+			p.message <- msg
+			dlog.Info("output msg: %v", msg)
+
+			p.finished = true
+			return
 		}
 
 		if !step.passCondition(p.downloader.Context) {
