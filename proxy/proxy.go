@@ -156,7 +156,7 @@ func (p *ProxyManager) refreshProxiesFromRedis() {
 	pc := NewProxyConfig()
 	pc.Tmpls = p.proxyConfig.Tmpls
 	for pname, oldPs := range p.proxyConfig.Proxies {
-		ps, err := p.client.LRange("proxy_"+pname, 0, 20).Result()
+		ps, err := p.client.LRange("proxy_"+pname, 0, 100).Result()
 		if err != nil || len(ps) == 0 {
 			pc.Proxies[pname] = oldPs
 			continue
@@ -232,6 +232,14 @@ func (p *ProxyManager) AddTmplProxy(tmpl, proxyStr string) {
 	} else {
 		p.tmplProxies[tmpl] = make(map[string]*Proxy)
 		p.tmplProxies[tmpl][proxyStr] = proxy
+	}
+}
+
+func (p *ProxyManager) CheckTmpl(tmpl string) bool {
+	if _, ok := p.tmplProxies[tmpl]; ok{
+		return true
+	} else {
+		return false
 	}
 }
 

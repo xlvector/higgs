@@ -99,6 +99,8 @@ func (p *HtmlSelector) PostProcess(s *goquery.Selection) string {
 			ret = base_url + ret
 		}
 	}
+	
+	ret = strings.Replace(ret,"\u0000","",-1)
 	return ret
 }
 

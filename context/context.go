@@ -8,6 +8,7 @@ import (
 	"text/template"
 	"time"
 
+	hproxy "github.com/xlvector/higgs/proxy"
 	"github.com/xlvector/dlog"
 	"github.com/xlvector/higgs/casperjs"
 	"github.com/xlvector/higgs/extractor"
@@ -67,14 +68,18 @@ func AESEncodePassword(pwd, key, iv string) string {
 }
 
 type Context struct {
-	Data map[string]interface{}
-	CJS  *casperjs.CasperJS
+	Data		map[string]interface{}
+	CJS 		*casperjs.CasperJS
+	Proxy		*hproxy.Proxy
+	ProxyManager	*hproxy.ProxyManager
 }
 
-func NewContext(cjs *casperjs.CasperJS) *Context {
+func NewContext(cjs *casperjs.CasperJS, p *hproxy.Proxy, pm *hproxy.ProxyManager) *Context {
 	return &Context{
-		Data: make(map[string]interface{}),
-		CJS:  cjs,
+		Data: 		make(map[string]interface{}),
+		CJS:  		cjs,
+		Proxy:		p,
+		ProxyManager:	pm,
 	}
 }
 
@@ -103,7 +108,13 @@ func (p *Context) newEmptyTemplate() *template.Template {
 		"notEmpty":           p.notEmpty,
 		"readCasper":         p.readCasper,
 		"writeCasper":        p.writeCasper,
+		"blockTmplProxy":     p.BlockTmplProxy,
 	})
+}
+
+func (p *Context) BlockTmplProxy(tmpl string) bool {
+	p.ProxyManager.BlockTmplProxy(tmpl, p.Proxy)
+	return true
 }
 
 func (p *Context) readCasper() string {

@@ -16,6 +16,7 @@ type Task struct {
 	DisableOutPubKey    bool    `json:"disable_out_pub_key"`
 	DisableOutputFolder bool    `json:"disable_output_folder"`
 	CasperjsScript      string  `json:"casperjs_script"`
+	TmplBlockTime	    string  `json:"tmpl_block_time"`
 }
 
 func NewTask(f string) *Task {
