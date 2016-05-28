@@ -99,10 +99,8 @@ func (p *HtmlSelector) PostProcess(s *goquery.Selection) string {
 			ret = base_url + ret
 		}
 	}
-	if len(ret) > 256 {
-		dlog.Println("Get in here")
-		ret = strings.Replace(ret,"\u0000","",-1)
-	}
+	
+	ret = strings.Replace(ret,"\u0000","",-1)
 	return ret
 }
 
