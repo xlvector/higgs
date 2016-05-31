@@ -33,6 +33,7 @@ type TaskCmd struct {
 	userId       string
 	passWord     string
 	path         string
+	url	     string
 	message      chan *cmd.Output
 	input        chan map[string]string
 	args         map[string]string
@@ -297,6 +298,8 @@ func (p *TaskCmd) run() {
 						val = util.DecodePassword(val, p.privateKey)
 					}
 					p.downloader.Context.Set(tk, val)
+				} else {
+					p.url = p.downloader.Context.Get(tk)
 				}
 			}
 		}
@@ -321,17 +324,11 @@ func (p *TaskCmd) run() {
 		}
 
 		if p.downloader.LastPageStatus/100 == 4 || p.downloader.LastPageStatus/100 == 5 {
-			data := p.downloader.Context.Parse(step.Message["data"])
-			if len(data) == 0 {
-				url,ok := p.downloader.Context.Get("link")
-				if ok {
-					data = "{\"source\":\""+url.(string)+"\",\"source_wait\":\"6666666666\",\"tmpl\":\""+p.tmpl+"\"}"
-				}
-			}
 			msg := &cmd.Output{
 				Status: cmd.WRONG_RESPONSE,
 				Id:	p.GetArgsValue("id"),
-				Data:	data,
+				Data:	p.downloader.Context.Parse(step.Message["data"]),
+				Url:	p.url,
 			}
 
 			p.message <- msg
@@ -348,6 +345,7 @@ func (p *TaskCmd) run() {
 					Status: cmd.TMPL_BLOCK,
 					Id:	p.GetArgsValue("id"),
 					Data:	data,
+					Url: 	p.url,
 				}
 				dlog.Println(data)
 				p.message <- msg
@@ -361,6 +359,7 @@ func (p *TaskCmd) run() {
 					Status: step.Message["status"],
 					Id:     p.GetArgsValue("id"),
 					Data:   data,
+					Url:	p.url,
 				}
 
 				if needParam, ok := step.Message["need_param"]; ok {
@@ -385,6 +384,7 @@ func (p *TaskCmd) run() {
 					Id:        p.GetArgsValue("id"),
 					NeedParam: action.Message["need_param"],
 					Data:      actionInfo,
+					Url:	   p.url,
 				}
 
 				p.message <- msg
@@ -413,6 +413,7 @@ func (p *TaskCmd) run() {
 						Status: cmd.FAIL,
 						Id:     p.GetArgsValue("id"),
 						Data:   actionInfo,
+						Url:	p.url,
 					}
 					p.message <- msg
 					dlog.Warn("%s Status:%s", p.GetId(), "retry fail "+step.Page)
@@ -458,6 +459,7 @@ func (p *TaskCmd) run() {
 		Status: cmd.FINISH_FETCH_DATA,
 		Id:     p.GetArgsValue("id"),
 		Data:   p.downloader.ExtractorResultString(),
+		Url:	p.url,
 	}
 
 	p.message <- message

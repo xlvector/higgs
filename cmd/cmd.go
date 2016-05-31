@@ -48,4 +48,5 @@ type Output struct {
 	NeedParam string `json:"need_param"`
 	Id        string `json:"id"`
 	Data      string `json:"data"`
+	Url 	  string `json:"url"`
 }
