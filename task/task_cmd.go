@@ -12,7 +12,7 @@ import (
 	hproxy "github.com/xlvector/higgs/proxy"
 	"github.com/xlvector/higgs/util"
 	"io/ioutil"
-	"math/rand"
+	_"math/rand"
 	"net/url"
 	"os"
 	"runtime/debug"
@@ -143,6 +143,7 @@ func (s *TaskCmdFactory) createCommandWithPrivateKey(params url.Values, task *Ta
 		RedisHost:    config.Instance.Redis.Host,
 		RedisTimeout: time.Duration(config.Instance.Redis.Timeout),
 	},   s.proxyManager)
+	dlog.Println(ret.downloader.Client)
 
 	dlog.Warn("output folder: %s", ret.downloader.OutputFolder)
 	ret.downloader.Context.Set("_id", ret.GetId())
@@ -283,7 +284,7 @@ func (p *TaskCmd) run() {
 		}
 
 		step := p.task.Steps[c]
-		time.Sleep(time.Duration(rand.Int63n(300)) * time.Millisecond)
+		//time.Sleep(time.Duration(rand.Int63n(300)) * time.Millisecond)
 
 		if len(step.NeedParam) > 0 {
 			tks := strings.Split(step.NeedParam, ",")
@@ -320,10 +321,17 @@ func (p *TaskCmd) run() {
 		}
 
 		if p.downloader.LastPageStatus/100 == 4 || p.downloader.LastPageStatus/100 == 5 {
+			data := p.downloader.Context.Parse(step.Message["data"])
+			if len(data) == 0 {
+				url,ok := p.downloader.Context.Get("link")
+				if ok {
+					data = "{\"source\":\""+url.(string)+"\",\"source_wait\":\"6666666666\",\"tmpl\":\""+p.tmpl+"\"}"
+				}
+			}
 			msg := &cmd.Output{
 				Status: cmd.WRONG_RESPONSE,
 				Id:	p.GetArgsValue("id"),
-				Data:	p.downloader.Context.Parse(step.Message["data"]),
+				Data:	data,
 			}
 
 			p.message <- msg
