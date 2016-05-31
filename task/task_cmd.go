@@ -299,7 +299,8 @@ func (p *TaskCmd) run() {
 					}
 					p.downloader.Context.Set(tk, val)
 				} else {
-					p.url = p.downloader.Context.Get(tk)
+					url,_ := p.downloader.Context.Get(tk)
+					p.url = url.(string)
 				}
 			}
 		}
