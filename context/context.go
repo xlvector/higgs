@@ -106,6 +106,7 @@ func (p *Context) newEmptyTemplate() *template.Template {
 		"set":                p.setValue,
 		"add":                p.addValue,
 		"notEmpty":           p.notEmpty,
+		"empty":	      p.empty,
 		"readCasper":         p.readCasper,
 		"writeCasper":        p.writeCasper,
 		"blockTmplProxy":     p.BlockTmplProxy,
@@ -160,6 +161,22 @@ func (p *Context) notEmpty(key string) bool {
 	}
 }
 
+func (p *Context) empty(key string) bool {
+	if v, ok := p.Data[key]; ok {
+		if v == nil {
+			return true
+		}
+		if val, ok2 := v.(string); ok2 {
+			if len(val) == 0 {
+				return true
+			}
+		}
+		return false
+	} else {
+		return false
+	}
+}
+
 func (p *Context) addValue(key string, val int) bool {
 	if v, ok := p.Data[key]; ok {
 		if vint, ok2 := v.(int); ok2 {
@@ -177,6 +194,9 @@ func (p *Context) extractHtml(body, query string) interface{} {
 	ret, err := extractor.Extract([]byte(body), query, "html", nil)
 	if err != nil {
 		dlog.Warn("extract error: %v", err)
+	}
+	if ret == nil {
+		return ""
 	}
 	return ret
 }
