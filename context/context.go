@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 	"time"
-
+	"regexp"
 	hproxy "github.com/xlvector/higgs/proxy"
 	"github.com/xlvector/dlog"
 	"github.com/xlvector/higgs/casperjs"
@@ -109,7 +109,18 @@ func (p *Context) newEmptyTemplate() *template.Template {
 		"readCasper":         p.readCasper,
 		"writeCasper":        p.writeCasper,
 		"blockTmplProxy":     p.BlockTmplProxy,
+		"regexMatch":	      p.RegexMatch,
 	})
+}
+
+func (p *Context) RegexMatch(s string, regex string) bool {
+	re := regexp.MustCompile(regex)
+	result := re.FindAllString(s,-1)
+	if len(result) == 0 {
+		return false
+	} else {
+		return true
+	}
 }
 
 func (p *Context) BlockTmplProxy(tmpl string) bool {
