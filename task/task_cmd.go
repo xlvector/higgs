@@ -12,7 +12,7 @@ import (
 	hproxy "github.com/xlvector/higgs/proxy"
 	"github.com/xlvector/higgs/util"
 	"io/ioutil"
-	"math/rand"
+	_"math/rand"
 	"net/url"
 	"os"
 	"runtime/debug"
@@ -33,6 +33,7 @@ type TaskCmd struct {
 	userId       string
 	passWord     string
 	path         string
+	url	     string
 	message      chan *cmd.Output
 	input        chan map[string]string
 	args         map[string]string
@@ -143,6 +144,7 @@ func (s *TaskCmdFactory) createCommandWithPrivateKey(params url.Values, task *Ta
 		RedisHost:    config.Instance.Redis.Host,
 		RedisTimeout: time.Duration(config.Instance.Redis.Timeout),
 	},   s.proxyManager)
+	dlog.Println(ret.downloader.Client)
 
 	dlog.Warn("output folder: %s", ret.downloader.OutputFolder)
 	ret.downloader.Context.Set("_id", ret.GetId())
@@ -284,7 +286,7 @@ func (p *TaskCmd) run() {
 		}
 
 		step := p.task.Steps[c]
-		time.Sleep(time.Duration(rand.Int63n(300)) * time.Millisecond)
+		//time.Sleep(time.Duration(rand.Int63n(300)) * time.Millisecond)
 
 		if len(step.NeedParam) > 0 {
 			tks := strings.Split(step.NeedParam, ",")
@@ -297,6 +299,9 @@ func (p *TaskCmd) run() {
 						val = util.DecodePassword(val, p.privateKey)
 					}
 					p.downloader.Context.Set(tk, val)
+				} else {
+					url,_ := p.downloader.Context.Get(tk)
+					p.url = url.(string)
 				}
 			}
 		}
@@ -327,6 +332,7 @@ func (p *TaskCmd) run() {
 				Status: cmd.WRONG_RESPONSE,
 				Id:	p.GetArgsValue("id"),
 				Data:	p.downloader.Context.Parse(step.Message["data"]),
+				Url:	p.url,
 			}
 
 			p.message <- msg
@@ -343,6 +349,7 @@ func (p *TaskCmd) run() {
 					Status: cmd.TMPL_BLOCK,
 					Id:	p.GetArgsValue("id"),
 					Data:	data,
+					Url: 	p.url,
 				}
 				dlog.Println(data)
 				p.message <- msg
@@ -356,6 +363,7 @@ func (p *TaskCmd) run() {
 					Status: step.Message["status"],
 					Id:     p.GetArgsValue("id"),
 					Data:   data,
+					Url:	p.url,
 				}
 
 				if needParam, ok := step.Message["need_param"]; ok {
@@ -380,6 +388,7 @@ func (p *TaskCmd) run() {
 					Id:        p.GetArgsValue("id"),
 					NeedParam: action.Message["need_param"],
 					Data:      actionInfo,
+					Url:	   p.url,
 				}
 
 				p.message <- msg
@@ -408,6 +417,7 @@ func (p *TaskCmd) run() {
 						Status: cmd.FAIL,
 						Id:     p.GetArgsValue("id"),
 						Data:   actionInfo,
+						Url:	p.url,
 					}
 					p.message <- msg
 					dlog.Warn("%s Status:%s", p.GetId(), "retry fail "+step.Page)
@@ -453,6 +463,7 @@ func (p *TaskCmd) run() {
 		Status: cmd.FINISH_FETCH_DATA,
 		Id:     p.GetArgsValue("id"),
 		Data:   p.downloader.ExtractorResultString(),
+		Url:	p.url,
 	}
 
 	p.message <- message
