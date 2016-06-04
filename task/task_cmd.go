@@ -371,7 +371,7 @@ func (p *TaskCmd) run() {
 					msg.NeedParam = needParam
 				}
 				
-				if p.message == nil {
+				if p.message != nil {
 				       p.message <- msg
 				 }
 
