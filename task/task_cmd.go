@@ -235,6 +235,7 @@ func (p *TaskCmd) Close() bool {
 		}
 	}()
 	close(p.message)
+	p.message = nil
 	close(p.input)
 	return true
 }
@@ -369,8 +370,10 @@ func (p *TaskCmd) run() {
 				if needParam, ok := step.Message["need_param"]; ok {
 					msg.NeedParam = needParam
 				}
-
-				p.message <- msg
+				
+				if p.message == nil {
+				       p.message <- msg
+				 }
 
 				if msg.Status == cmd.FAIL || msg.Status == cmd.FINISH_FETCH_DATA {
 					p.finished = true
