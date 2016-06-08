@@ -181,7 +181,7 @@ func (p *ProxyManager) checkProxies() {
 				}
 				if !py.Available() {
 					dlog.Warn("proxy %s is not available", py.String())
-					py.BlockTime = time.Now().Add(time.Minute * 10)
+					py.BlockTime = time.Now().Add(time.Second * 45)
 				}
 			}
 		}
