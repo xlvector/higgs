@@ -126,15 +126,15 @@ func RandRange(min, max int64) int64 {
 func GetTimestamp(types, infos string) interface{} {
 	dlog.Println(types)
 	if types == "spare_time" {
-		tomorrow_year,tomorrow_month,tomorrow_date := time.Now().Add(24*time.Hour).Date()
-		tomorrow_timestamp := time.Date(tomorrow_year, tomorrow_month, tomorrow_date, 0, 0, 0, 0, time.Local).Unix()
-		now_timestamp := time.Now().Unix()
-		time_diff := tomorrow_timestamp-now_timestamp
+		tomorrowYear,tomorrowMonth,tomorrowDate := time.Now().Add(24*time.Hour).Date()
+		tomorrowTimestamp := time.Date(tomorrowYear, tomorrowMonth, tomorrowDate, 0, 0, 0, 0, time.Local).Unix()
+		nowTimestamp := time.Now().Unix()
+		timeDiff := tomorrowTimestamp-nowTimestamp
 		hours,error := strconv.ParseInt(infos,10,64)
 		if error != nil {
-			return time_diff
+			return timeDiff
 		}
-		return RandRange(time_diff,time_diff+hours*3600)
+		return RandRange(timeDiff,timeDiff+hours*3600)
 	} else if types == "ranges" {
 		nums := strings.Split(infos,"-")
 		if len(nums) == 2 {
