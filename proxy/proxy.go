@@ -2,15 +2,16 @@ package proxy
 
 import (
 	"encoding/json"
-	"github.com/xlvector/dlog"
-	"github.com/xlvector/higgs/config"
-	"gopkg.in/redis.v3"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/xlvector/dlog"
+	"github.com/xlvector/higgs/config"
+	"gopkg.in/redis.v3"
 )
 
 //If redis is setup, use proxies in redis, otherwise, use proxies in ProxyConfig.Proxies
@@ -32,6 +33,7 @@ type Proxy struct {
 	Username  string
 	Password  string
 	BlockTime time.Time
+	LastTime  int64
 }
 
 func NewProxy(buf string) *Proxy {
@@ -126,23 +128,22 @@ func NewProxyManager(conf string) *ProxyManager {
 
 func (p *ProxyManager) genTmplProxiesFromConfig(pc *ProxyConfig) map[string]map[string]*Proxy {
 	checked_proxies := make(map[string]map[string]*Proxy)
-	for pn,ps := range pc.Proxies {
+	for pn, ps := range pc.Proxies {
 		checked_proxies[pn] = make(map[string]*Proxy)
-		dlog.Info("Check %s proxies",pn)
-		for _,p := range ps {
+		dlog.Info("Check %s proxies", pn)
+		for _, p := range ps {
 			checked_proxies[pn][p] = NewProxy(p)
 		}
 	}
 
 	ret := make(map[string]map[string]*Proxy)
-	for tmpl,pn := range pc.Tmpls {
-		dlog.Info("Add %s proxies to tmpl %s",pn,tmpl)
+	for tmpl, pn := range pc.Tmpls {
+		dlog.Info("Add %s proxies to tmpl %s", pn, tmpl)
 		ret[tmpl] = make(map[string]*Proxy)
 		ret[tmpl] = checked_proxies[pn]
 	}
 	return ret
 }
-
 
 func (p *ProxyManager) refreshProxiesFromRedis() {
 	if p.client == nil {
@@ -194,10 +195,19 @@ func (p *ProxyManager) getProxyFromMap(ps map[string]*Proxy) *Proxy {
 			dlog.Warn("proxy %s is blocked", v.String())
 			continue
 		}
+
+		now := time.Now().Unix()
+		if v.LastTime+2 > now {
+			dlog.Warn("proxy %s is used fast", v.String())
+			continue
+		}
+
 		if !v.Available() {
 			dlog.Warn("proxy %s is not available", v.String())
 			continue
 		}
+
+		v.LastTime = now
 		return v
 	}
 	return nil
@@ -236,7 +246,7 @@ func (p *ProxyManager) AddTmplProxy(tmpl, proxyStr string) {
 }
 
 func (p *ProxyManager) CheckTmpl(tmpl string) bool {
-	if _, ok := p.tmplProxies[tmpl]; ok{
+	if _, ok := p.tmplProxies[tmpl]; ok {
 		return true
 	} else {
 		return false
